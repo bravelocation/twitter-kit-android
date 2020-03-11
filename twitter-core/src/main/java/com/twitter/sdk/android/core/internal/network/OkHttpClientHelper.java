@@ -22,13 +22,7 @@ import com.twitter.sdk.android.core.Session;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.twitter.sdk.android.core.TwitterAuthToken;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import okhttp3.CertificatePinner;
-import okhttp3.CipherSuite;
-import okhttp3.ConnectionSpec;
 import okhttp3.OkHttpClient;
 
 public class OkHttpClientHelper {
@@ -75,7 +69,6 @@ public class OkHttpClientHelper {
                                              GuestSessionProvider guestSessionProvider) {
         return builder
                 .certificatePinner(getCertificatePinner())
-                .connectionSpecs(Collections.singletonList(getConnectionSpec()))
                 .authenticator(new GuestAuthenticator(guestSessionProvider))
                 .addInterceptor(new GuestAuthInterceptor(guestSessionProvider))
                 .addNetworkInterceptor(new GuestAuthNetworkInterceptor());
@@ -86,21 +79,7 @@ public class OkHttpClientHelper {
                                                TwitterAuthConfig authConfig) {
         return builder
                 .certificatePinner(getCertificatePinner())
-                .connectionSpecs(Collections.singletonList(getConnectionSpec()))
                 .addInterceptor(new OAuth1aInterceptor(session, authConfig));
-    }
-
-    static ConnectionSpec getConnectionSpec() {
-        // Add legacy cipher suite for Android 4
-        List<CipherSuite> cipherSuites = ConnectionSpec.MODERN_TLS.cipherSuites();
-        if (!cipherSuites.contains(CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA)) {
-            cipherSuites = new ArrayList(cipherSuites);
-            cipherSuites.add(CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA);
-        }
-
-        return new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
-                .cipherSuites(cipherSuites.toArray(new CipherSuite[0]))
-                .build();
     }
 
     public static CertificatePinner getCertificatePinner() {
